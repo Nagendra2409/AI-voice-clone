@@ -1,0 +1,47 @@
+import os
+from google.cloud import speech, texttospeech
+
+# Initialize ASR and TTS clients
+asr_client = speech.SpeechClient()
+tts_client = texttospeech.TextToSpeechClient()
+
+# Input audio file (English)
+input_audio_file = "input_audio.wav"
+
+# Transcribe the input audio to text (English)
+with open(input_audio_file, "rb") as audio_file:
+    content = audio_file.read()
+
+audio = speech.RecognitionAudio(content=content)
+config = speech.RecognitionConfig(
+    encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+    sample_rate_hertz=16000,
+    language_code="en-US",  # Source language (English)
+)
+
+response = asr_client.recognize(config=config, audio=audio)
+source_text = response.results[0].alternatives[0].transcript
+
+# Translate the source text (English to Hindi)
+# Replace this with your preferred translation method/API
+translated_text = your_translation_function(source_text, source_language="en", target_language="hi")
+
+# Synthesize translated text to speech (Hindi)
+input_text = texttospeech.SynthesisInput(text=translated_text)
+voice_params = texttospeech.VoiceSelectionParams(
+    language_code="hi-IN",  # Target language (Hindi)
+    name="your-preferred-voice-name",  # Voice name
+)
+
+audio_config = texttospeech.AudioConfig(
+    audio_encoding=texttospeech.AudioEncoding.LINEAR16
+)
+
+response = tts_client.synthesize_speech(input=input_text, voice=voice_params, audio_config=audio_config)
+
+# Output synthesized audio to a file
+output_audio_file = "output_audio.wav"
+with open(output_audio_file, "wb") as audio_file:
+    audio_file.write(response.audio_content)
+
+print("Translation complete. Output audio saved to:", output_audio_file)
